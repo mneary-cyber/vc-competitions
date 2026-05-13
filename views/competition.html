@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{title}} | Vouchercloud</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>:root { --brand: {{brand_color}}; }</style>
+</head>
+<body>
+  <header class="site-header">
+    <a href="https://www.vouchercloud.com">
+      <img src="/images/vc-logo.svg" alt="Vouchercloud" class="logo">
+    </a>
+  </header>
+
+  <main class="comp-hero">
+    {{prize_image ? `<img src="{{prize_image}}" alt="Prize" class="prize-image">` : ''}}
+    <div class="comp-content">
+      <span class="comp-badge">Competition</span>
+      <h1>{{title}}</h1>
+      <p class="subtitle">{{subtitle}}</p>
+      <div class="prize-box">
+        <span class="prize-label">Prize</span>
+        <span class="prize-value">{{prize}}</span>
+      </div>
+      <p class="closes">Closes {{end_date}}</p>
+
+      <form id="entry-form" class="entry-form">
+        <input type="hidden" name="utm_source" id="utm_source">
+        <input type="hidden" name="utm_medium" id="utm_medium">
+        <input type="hidden" name="utm_campaign" id="utm_campaign">
+        <div class="field-row">
+          <input type="text" name="firstname" placeholder="First name (optional)" autocomplete="given-name">
+        </div>
+        <div class="field-row">
+          <input type="email" name="email" placeholder="Your email address" required autocomplete="email">
+        </div>
+        <button type="submit" class="btn-enter">Enter now</button>
+        <p class="consent">By entering you agree to our <a href="{{terms_url}}" target="_blank">terms & conditions</a> and to receive occasional emails from Vouchercloud. Unsubscribe anytime.</p>
+      </form>
+
+      <div id="thank-you" class="thank-you hidden">
+        <div class="tick">✓</div>
+        <h2>You're in!</h2>
+        <p>Good luck — we'll be in touch if you win.<br>Keep an eye on your inbox.</p>
+      </div>
+
+      <div id="error-msg" class="error-msg hidden"></div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; {{end_date | year}} Vouchercloud · <a href="{{terms_url}}">Terms & Conditions</a></p>
+  </footer>
+
+  <script>
+    // Capture UTM params from URL into hidden fields
+    const params = new URLSearchParams(location.search);
+    ['utm_source','utm_medium','utm_campaign'].forEach(k => {
+      const el = document.getElementById(k);
+      if (el && params.get(k)) el.value = params.get(k);
+    });
+
+    document.getElementById('entry-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button');
+      btn.disabled = true;
+      btn.textContent = 'Entering…';
+
+      const body = new URLSearchParams(new FormData(e.target));
+      try {
+        const res  = await fetch(location.pathname.replace(/\/$/, '') + '/enter', { method: 'POST', body });
+        const data = await res.json();
+        if (data.ok) {
+          document.getElementById('entry-form').classList.add('hidden');
+          document.getElementById('thank-you').classList.remove('hidden');
+        } else {
+          showError(data.error || 'Something went wrong — please try again.');
+          btn.disabled = false;
+          btn.textContent = 'Enter now';
+        }
+      } catch {
+        showError('Something went wrong — please try again.');
+        btn.disabled = false;
+        btn.textContent = 'Enter now';
+      }
+    });
+
+    function showError(msg) {
+      const el = document.getElementById('error-msg');
+      el.textContent = msg;
+      el.classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>

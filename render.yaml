@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: vc-competitions
+    runtime: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: BLUESHIFT_API_KEY
+        sync: false
+      - key: NODE_ENV
+        value: production
