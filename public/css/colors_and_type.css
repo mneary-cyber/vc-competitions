@@ -1,0 +1,149 @@
+/* ============================================================
+   Vouchercloud — Colors & Type
+   Source: VC - Components.fig (METADATA + page samples)
+   ============================================================ */
+
+/* Brand font: Museo Sans (300/500/700/900) + Museo Sans Display (Black, ExtraBlack)
+   licensed and self-hosted from /fonts. */
+@font-face { font-family: "Museo Sans"; font-weight: 100; font-style: normal; src: url("/fonts/MuseoSans-100.otf") format("opentype"); font-display: swap; }
+@font-face { font-family: "Museo Sans"; font-weight: 300; font-style: normal; src: url("/fonts/MuseoSans-300.otf") format("opentype"); font-display: swap; }
+@font-face { font-family: "Museo Sans"; font-weight: 500; font-style: normal; src: url("/fonts/MuseoSans-500.otf") format("opentype"); font-display: swap; }
+@font-face { font-family: "Museo Sans"; font-weight: 700; font-style: normal; src: url("/fonts/MuseoSans-700.otf") format("opentype"); font-display: swap; }
+@font-face { font-family: "Museo Sans"; font-weight: 900; font-style: normal; src: url("/fonts/MuseoSans-900.otf") format("opentype"); font-display: swap; }
+@font-face { font-family: "Museo Sans Display"; font-weight: 900; font-style: normal; src: url("/fonts/MuseoSansDisplay-Black.otf") format("opentype"); font-display: swap; }
+@font-face { font-family: "Museo Sans Display"; font-weight: 950; font-style: normal; src: url("/fonts/MuseoSansDisplay-ExtraBlack.otf") format("opentype"); font-display: swap; }
+
+:root {
+  /* ---------- BRAND ---------- */
+  --vc-sky:        #009ED9;   /* primary brand blue — links, CTAs, logomark */
+  --vc-sky-dark:   #06739C;   /* deeper blue — hover, headlines on light */
+  --vc-sky-pale:   #DCF2F9;   /* tonal background tint */
+  --vc-sky-soft:   #EAF7FC;   /* even paler — banners, info panels */
+
+  /* ---------- ACCENTS (badge / category) ---------- */
+  --vc-orange:     #ED7024;   /* "voucher code" pill, urgent banners */
+  --vc-orange-dk:  #C54902;   /* orange pressed/hover */
+  --vc-yellow:     #FFC731;   /* highlights, star rating */
+  --vc-yellow-dk:  #ECAD08;
+  --vc-red:        #F24745;
+  --vc-red-dk:     #B11113;
+  --vc-green:      #4CA54F;
+  --vc-green-dk:   #32A071;
+  --vc-pink:       #D23393;
+  --vc-magenta:    #AF46BF;
+  --vc-lime:       #8AB000;
+
+  /* ---------- NEUTRALS ---------- */
+  --vc-ink:        #222627;   /* primary text */
+  --vc-ink-2:      #4D4D4D;   /* secondary text */
+  --vc-mute:       #8DA1AA;   /* tertiary text, dividers, icons */
+  --vc-line:       #D3DEE3;   /* hairline borders, dividers */
+  --vc-surface:    #EDF2F4;   /* page tint / card bg */
+  --vc-white:      #FFFFFF;
+  --vc-black:      #000000;
+
+  /* ---------- SEMANTIC ---------- */
+  --fg-1: var(--vc-ink);
+  --fg-2: var(--vc-ink-2);
+  --fg-3: var(--vc-mute);
+  --fg-link: var(--vc-sky);
+  --fg-link-hover: var(--vc-sky-dark);
+  --fg-on-brand: var(--vc-white);
+
+  --bg-page:      var(--vc-white);
+  --bg-tint:      var(--vc-surface);
+  --bg-brand:     var(--vc-sky);
+  --bg-brand-soft: var(--vc-sky-soft);
+
+  --border:       var(--vc-line);
+  --border-strong: var(--vc-mute);
+
+  --success: var(--vc-green);
+  --warning: var(--vc-yellow);
+  --danger:  var(--vc-red);
+  --info:    var(--vc-sky);
+
+  /* ---------- ELEVATION ---------- */
+  /* Vouchercloud tiles use very subtle shadows (rgba(16,24,40,0.06) + 0.10) */
+  --shadow-xs:  0 1px 2px rgba(16,24,40,.06);
+  --shadow-sm:  0 1px 3px rgba(16,24,40,.10), 0 1px 2px rgba(16,24,40,.06);
+  --shadow-md:  0 4px 8px -2px rgba(16,24,40,.10), 0 2px 4px -2px rgba(16,24,40,.06);
+  --shadow-lg:  0 12px 16px -4px rgba(16,24,40,.08), 0 4px 6px -2px rgba(16,24,40,.03);
+
+  /* ---------- RADII ---------- */
+  --radius-xs: 4px;   /* chips, tags, small pills */
+  --radius-sm: 6px;   /* inputs */
+  --radius-md: 8px;   /* default — buttons, tiles */
+  --radius-lg: 12px;  /* cards, modal */
+  --radius-xl: 16px;  /* hero panels */
+  --radius-pill: 999px;
+
+  /* ---------- SPACING (4px base) ---------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  /* ---------- TYPOGRAPHY ---------- */
+  --font-display: "Museo Sans Display", "Museo Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body:    "Museo Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* size ramp — derived from observed Museo Sans sizes (12 / 14 / 16 / 20 / 24 / 32 / 60 / 100 / 150) */
+  --t-display:   60px;   /* hero */
+  --t-h1:        32px;
+  --t-h2:        24px;
+  --t-h3:        20px;
+  --t-h4:        16px;
+  --t-body:      16px;
+  --t-body-sm:   14px;
+  --t-caption:   12px;
+  --t-overline:  10px;
+
+  --leading-tight: 1.15;
+  --leading-snug:  1.25;
+  --leading-base:  1.4;
+  --leading-loose: 1.55;
+}
+
+/* ============================================================
+   Base typography
+   ============================================================ */
+html { font-family: var(--font-body); color: var(--fg-1); }
+body { font-size: var(--t-body); line-height: var(--leading-base); }
+
+h1, .h1 { font-family: var(--font-display); font-weight: 900; font-size: var(--t-h1); line-height: var(--leading-tight); color: var(--fg-1); margin: 0; }
+h2, .h2 { font-family: var(--font-display); font-weight: 900; font-size: var(--t-h2); line-height: var(--leading-snug); color: var(--fg-1); margin: 0; }
+h3, .h3 { font-family: var(--font-display); font-weight: 700; font-size: var(--t-h3); line-height: var(--leading-snug); color: var(--fg-1); margin: 0; }
+h4, .h4 { font-family: var(--font-display); font-weight: 700; font-size: var(--t-h4); line-height: var(--leading-snug); color: var(--fg-1); margin: 0; }
+
+.t-display   { font-family: var(--font-display); font-weight: 900; font-size: var(--t-display); line-height: 1.05; letter-spacing: -.01em; }
+.t-eyebrow   { font-family: var(--font-display); font-weight: 700; font-size: var(--t-overline); letter-spacing: .08em; text-transform: uppercase; color: var(--fg-3); }
+.t-body      { font-size: var(--t-body); }
+.t-body-sm   { font-size: var(--t-body-sm); color: var(--fg-2); }
+.t-caption   { font-size: var(--t-caption); color: var(--fg-3); }
+.t-mute      { color: var(--fg-3); }
+
+a, .vc-link { color: var(--fg-link); text-decoration: none; }
+a:hover, .vc-link:hover { color: var(--fg-link-hover); text-decoration: underline; }
+
+/* ============================================================
+   Utilities
+   ============================================================ */
+.vc-card {
+  background: var(--bg-page);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+.vc-tile {
+  background: var(--bg-page);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}

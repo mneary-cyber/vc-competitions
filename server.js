@@ -52,6 +52,7 @@ app.get('/c/:slug', (req, res) => {
     prize: comp.prize,
     prize_image: comp.prize_image || '',
     end_date: new Date(comp.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+    end_date_iso: comp.end_date,
     terms_url: comp.terms_url || '#',
     brand_color: comp.brand_color || '#E4002B',
     entry_count: count,

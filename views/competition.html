@@ -1,97 +1,424 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{title}} | Vouchercloud</title>
-  <link rel="stylesheet" href="/css/style.css">
-  <style>:root { --brand: {{brand_color}}; }</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{title}} | Vouchercloud Competition</title>
+  <link rel="icon" type="image/svg+xml" href="/logo/logomark.svg" />
+  <link rel="stylesheet" href="/css/colors_and_type.css" />
+  <link rel="stylesheet" href="/css/competition.css" />
+  <style>
+    html, body { margin: 0; padding: 0; background: var(--vc-white); }
+    #root { min-height: 100vh; display: flex; flex-direction: column; }
+    @media (max-width: 767px) {
+      .cm-prize-row { grid-template-columns: 1fr !important; }
+      .cm-steps { grid-template-columns: 1fr !important; }
+    }
+  </style>
 </head>
 <body>
-  <header class="site-header">
-    <a href="https://www.vouchercloud.com">
-      <img src="/images/vc-logo.svg" alt="Vouchercloud" class="logo">
-    </a>
-  </header>
-
-  <main class="comp-hero">
-    {{prize_image ? `<img src="{{prize_image}}" alt="Prize" class="prize-image">` : ''}}
-    <div class="comp-content">
-      <span class="comp-badge">Competition</span>
-      <h1>{{title}}</h1>
-      <p class="subtitle">{{subtitle}}</p>
-      <div class="prize-box">
-        <span class="prize-label">Prize</span>
-        <span class="prize-value">{{prize}}</span>
-      </div>
-      <p class="closes">Closes {{end_date}}</p>
-
-      <form id="entry-form" class="entry-form">
-        <input type="hidden" name="utm_source" id="utm_source">
-        <input type="hidden" name="utm_medium" id="utm_medium">
-        <input type="hidden" name="utm_campaign" id="utm_campaign">
-        <div class="field-row">
-          <input type="text" name="firstname" placeholder="First name (optional)" autocomplete="given-name">
-        </div>
-        <div class="field-row">
-          <input type="email" name="email" placeholder="Your email address" required autocomplete="email">
-        </div>
-        <button type="submit" class="btn-enter">Enter now</button>
-        <p class="consent">By entering you agree to our <a href="{{terms_url}}" target="_blank">terms & conditions</a> and to receive occasional emails from Vouchercloud. Unsubscribe anytime.</p>
-      </form>
-
-      <div id="thank-you" class="thank-you hidden">
-        <div class="tick">✓</div>
-        <h2>You're in!</h2>
-        <p>Good luck — we'll be in touch if you win.<br>Keep an eye on your inbox.</p>
-      </div>
-
-      <div id="error-msg" class="error-msg hidden"></div>
-    </div>
-  </main>
-
-  <footer class="site-footer">
-    <p>&copy; {{end_date | year}} Vouchercloud · <a href="{{terms_url}}">Terms & Conditions</a></p>
-  </footer>
+  <div id="root"></div>
 
   <script>
-    // Capture UTM params from URL into hidden fields
-    const params = new URLSearchParams(location.search);
-    ['utm_source','utm_medium','utm_campaign'].forEach(k => {
-      const el = document.getElementById(k);
-      if (el && params.get(k)) el.value = params.get(k);
-    });
+    window.COMP = {
+      slug:             "{{slug}}",
+      title:            "{{title}}",
+      subtitle:         "{{subtitle}}",
+      prize:            "{{prize}}",
+      prizeImage:       "{{prize_image}}",
+      endDateIso:       "{{end_date_iso}}",
+      endDateFormatted: "{{end_date}}",
+      termsUrl:         "{{terms_url}}",
+      brandColor:       "{{brand_color}}",
+      entryCount:       parseInt("{{entry_count}}") || 0
+    };
+  </script>
 
-    document.getElementById('entry-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = e.target.querySelector('button');
-      btn.disabled = true;
-      btn.textContent = 'Entering…';
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
-      const body = new URLSearchParams(new FormData(e.target));
-      try {
-        const res  = await fetch(location.pathname.replace(/\/$/, '') + '/enter', { method: 'POST', body });
-        const data = await res.json();
-        if (data.ok) {
-          document.getElementById('entry-form').classList.add('hidden');
-          document.getElementById('thank-you').classList.remove('hidden');
-        } else {
-          showError(data.error || 'Something went wrong — please try again.');
-          btn.disabled = false;
-          btn.textContent = 'Enter now';
-        }
-      } catch {
-        showError('Something went wrong — please try again.');
-        btn.disabled = false;
-        btn.textContent = 'Enter now';
-      }
-    });
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+    const comp = window.COMP;
 
-    function showError(msg) {
-      const el = document.getElementById('error-msg');
-      el.textContent = msg;
-      el.classList.remove('hidden');
+    const icon = (name, style) => (
+      <img src={`/icons/${name}.svg`} alt="" style={{ width: 20, height: 20, display: 'inline-block', ...(style || {}) }} />
+    );
+
+    function useMobile() {
+      const [m, setM] = useState(() => window.innerWidth < 768);
+      useEffect(() => {
+        const fn = () => setM(window.innerWidth < 768);
+        window.addEventListener('resize', fn);
+        return () => window.removeEventListener('resize', fn);
+      }, []);
+      return m;
     }
+
+    function calcTime() {
+      const diff = Math.max(0, new Date(comp.endDateIso).getTime() - Date.now());
+      return {
+        d: Math.floor(diff / 86400000),
+        h: Math.floor(diff % 86400000 / 3600000),
+        m: Math.floor(diff % 3600000 / 60000),
+        s: Math.floor(diff % 60000 / 1000),
+      };
+    }
+
+    function CMCounter({ mobile }) {
+      const [t, setT] = useState(() => calcTime());
+      const [entrants, setEntrants] = useState(comp.entryCount);
+      useEffect(() => {
+        const id1 = setInterval(() => setT(calcTime()), 1000);
+        const id2 = setInterval(() => setEntrants(e => e + (Math.random() < 0.4 ? 1 : 0)), 3000);
+        return () => { clearInterval(id1); clearInterval(id2); };
+      }, []);
+      return (
+        <div className="cm-counter">
+          <div className="head">
+            <div className="head-l">
+              <span className="eb">Entry closes</span>
+              <span className="ttl">{comp.endDateFormatted}</span>
+            </div>
+            <span className="live"><span className="pulse" />LIVE</span>
+          </div>
+          <div className="cm-counter-grid">
+            {[['Days', t.d], ['Hours', t.h], ['Mins', t.m], ['Secs', t.s]].map(([l, v]) => (
+              <div key={l} className="cm-counter-cell">
+                <div className="n">{String(v).padStart(2, '0')}</div>
+                <div className="l">{l}</div>
+              </div>
+            ))}
+          </div>
+          {entrants > 0 && (
+            <div className="entrants">
+              <div className="avatars">
+                {[['#009ED9','JM'],['#ED7024','AK'],['#4CA54F','PR'],['#D23393','SO']].map(([bg, initials], i) => (
+                  <span key={i} style={{ background: bg }}>{initials}</span>
+                ))}
+              </div>
+              <div>
+                <div className="num">
+                  {entrants.toLocaleString('en-GB')}{' '}
+                  <span style={{ color: 'var(--vc-mute)', fontWeight: 500, fontSize: 12 }}>entrants</span>
+                </div>
+                <div className="lbl">Join Vouchercloud members in the draw</div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function CMFooter({ mobile }) {
+      return (
+        <div className={`cm-footer ${mobile ? 'cm-footer-m' : 'cm-footer-d'}`}>
+          <div>© 2026 Vouchercloud Ltd · Bristol, UK</div>
+          <div className="links">
+            <a href={comp.termsUrl} target="_blank" rel="noopener">Full T&amp;Cs</a>
+            <a href="https://www.vouchercloud.com/info/privacy-policy" target="_blank" rel="noopener">Privacy</a>
+            <a href="https://www.vouchercloud.com/info/help" target="_blank" rel="noopener">Help</a>
+          </div>
+        </div>
+      );
+    }
+
+    function ScreenLanding({ mobile, onEnter }) {
+      return (
+        <div className="cm-root" style={{ flex: 1 }}>
+          <section className={`cm-hero ${mobile ? 'cm-hero-m' : 'cm-hero-d'}`}>
+            <div className="cm-hero-balls" aria-hidden="true">
+              <span className="cm-ball b1" />
+              <span className="cm-ball b2" />
+              <span className="cm-ball b3" />
+              {!mobile && <span className="cm-ball b4" />}
+            </div>
+            <div className="cm-hero-inner">
+              <img src="/logo/vouchercloud-logo-white.png" alt="Vouchercloud" style={{ height: 44, display: 'block', marginBottom: 18 }} />
+              <h1>{comp.title}</h1>
+              {comp.subtitle && <p className="sub">{comp.subtitle}</p>}
+              <div className="cm-hero-cta-row">
+                <button className="cm-btn lg orange" onClick={onEnter}>
+                  Enter for free
+                  {icon('chevron-right', { width: 18, height: 18, filter: 'invert(1)' })}
+                </button>
+                <div className="cm-hero-meta">
+                  <span className="item">
+                    {icon('check-circle', { width: 14, height: 14, filter: 'invert(1)' })}
+                    No purchase necessary
+                  </span>
+                  <span className="item">
+                    {icon('lock', { width: 14, height: 14, filter: 'invert(1)' })}
+                    30 seconds to enter
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="cm-hero-inner">
+              <CMCounter mobile={mobile} />
+            </div>
+          </section>
+
+          <section className={`cm-section ${mobile ? 'cm-section-m' : 'cm-section-d'}`}>
+            <h2>The prize</h2>
+            <p className="sec-sub">One winner. Everything covered.</p>
+            <div className="cm-prize-row" style={{ gridTemplateColumns: '1fr' }}>
+              <article className="cm-prize-card" style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 20 }}>
+                {comp.prizeImage
+                  ? <img src={comp.prizeImage} alt={comp.prize} style={{ width: 140, height: 140, objectFit: 'cover', borderRadius: 12, flexShrink: 0 }} />
+                  : <span className="icon">{icon('gift', { width: 24, height: 24 })}</span>
+                }
+                <div>
+                  <h3 className="ttl">{comp.prize}</h3>
+                  <p className="body">Drawn at random from all valid entries before {comp.endDateFormatted}. The winner will be contacted by email within 48 hours.</p>
+                  <span className="val">Free entry · UK residents only · 18+</span>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section className={`cm-section tint ${mobile ? 'cm-section-m' : 'cm-section-d'}`}>
+            <h2>How to enter</h2>
+            <p className="sec-sub">No purchase, no quiz, no catch. Done in thirty seconds.</p>
+            <div className="cm-steps">
+              <div className="cm-step">
+                <span className="num">1</span>
+                <h3>Drop your email</h3>
+                <p>Enter the email address you use for Vouchercloud. One entry per person.</p>
+              </div>
+              <div className="cm-step">
+                <span className="num">2</span>
+                <h3>Tell us your name</h3>
+                <p>So we know who to congratulate if you win.</p>
+              </div>
+              <div className="cm-step">
+                <span className="num">3</span>
+                <h3>You're in the draw</h3>
+                <p>We'll contact the winner by email after {comp.endDateFormatted}.</p>
+              </div>
+            </div>
+            <div style={{ marginTop: 32 }}>
+              <button className="cm-btn lg orange" onClick={onEnter}>
+                Enter for free
+                {icon('chevron-right', { width: 18, height: 18, filter: 'invert(1)' })}
+              </button>
+            </div>
+          </section>
+
+          <CMFooter mobile={mobile} />
+        </div>
+      );
+    }
+
+    function ScreenEntry({ mobile, onSuccess }) {
+      const [email, setEmail]         = useState('');
+      const [firstname, setFirstname] = useState('');
+      const [terms, setTerms]         = useState(false);
+      const [marketing, setMarketing] = useState(true);
+      const [submitted, setSubmitted] = useState(false);
+      const [loading, setLoading]     = useState(false);
+      const [serverError, setServerError] = useState('');
+
+      const emailValid = email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      const valid = emailValid && terms;
+
+      const params = new URLSearchParams(location.search);
+
+      const tryEnter = async () => {
+        setSubmitted(true);
+        if (!valid) return;
+        setLoading(true);
+        setServerError('');
+        try {
+          const body = new URLSearchParams({
+            email, firstname,
+            utm_source:   params.get('utm_source')   || '',
+            utm_medium:   params.get('utm_medium')   || '',
+            utm_campaign: params.get('utm_campaign') || '',
+          });
+          const res  = await fetch(`/c/${comp.slug}/enter`, { method: 'POST', body });
+          const data = await res.json();
+          if (data.ok) {
+            onSuccess({ firstname, email });
+          } else {
+            setServerError(data.error || 'Something went wrong — please try again.');
+            setLoading(false);
+          }
+        } catch {
+          setServerError('Something went wrong — please try again.');
+          setLoading(false);
+        }
+      };
+
+      return (
+        <div className="cm-root cm-entry-shell" style={{ flex: 1 }}>
+          <div className={mobile ? 'cm-entry-m' : 'cm-entry-d'}>
+            <div>
+              {!mobile && (
+                <div className="cm-crumb">
+                  <a href={`/c/${comp.slug}`}>Back</a>
+                  <span className="sep">/</span>
+                  <span style={{ color: 'var(--vc-ink-2)' }}>{comp.title}</span>
+                </div>
+              )}
+              <div className="cm-form-card">
+                <h1>One step to your free entry</h1>
+                <p className="lede">Confirm your details and we'll add you to the draw. We'll never sell your data — promise.</p>
+
+                <div className="cm-field">
+                  <label htmlFor="cmE">Email address</label>
+                  <input
+                    id="cmE"
+                    className={`cm-input ${submitted && !emailValid ? 'error' : ''}`}
+                    type="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                  />
+                  <span className="hint">We'll only use this to contact the winner.</span>
+                </div>
+
+                <div className="cm-field">
+                  <label htmlFor="cmF">First name <span style={{ fontWeight: 400, color: 'var(--vc-mute)' }}>(optional)</span></label>
+                  <input
+                    id="cmF"
+                    className="cm-input"
+                    value={firstname}
+                    onChange={e => setFirstname(e.target.value)}
+                    placeholder="Your first name"
+                    style={{ maxWidth: 280 }}
+                  />
+                </div>
+
+                <div style={{ height: 8 }} />
+
+                <div
+                  className={`cm-check ${terms ? 'is-checked' : ''} ${submitted && !terms ? 'required-error' : ''}`}
+                  onClick={() => setTerms(t => !t)} role="checkbox" aria-checked={terms}
+                >
+                  <span className="box">{icon('check', { width: 14, height: 14, filter: 'invert(1)' })}</span>
+                  <span className="txt">I've read and agree to the <a href={comp.termsUrl} target="_blank" rel="noopener">competition T&amp;Cs</a> and the Vouchercloud <a href="https://www.vouchercloud.com/info/privacy-policy" target="_blank" rel="noopener">privacy policy</a>.</span>
+                </div>
+
+                <div
+                  className={`cm-check ${marketing ? 'is-checked' : ''}`}
+                  onClick={() => setMarketing(m => !m)} role="checkbox" aria-checked={marketing}
+                >
+                  <span className="box">{icon('check', { width: 14, height: 14, filter: 'invert(1)' })}</span>
+                  <span className="txt">Send me the Vouchercloud weekly — the UK's best vouchers, picked by humans. Unsubscribe any time.</span>
+                </div>
+
+                <div style={{ marginTop: 22, display: 'flex', flexDirection: mobile ? 'column' : 'row', gap: 12, alignItems: mobile ? 'stretch' : 'center' }}>
+                  <button
+                    className={`cm-btn lg orange${mobile ? ' full' : ''}`}
+                    onClick={tryEnter}
+                    disabled={loading}
+                  >
+                    {loading ? 'Entering…' : 'Enter the draw'}
+                    {!loading && icon('chevron-right', { width: 18, height: 18, filter: 'invert(1)' })}
+                  </button>
+                  <div className="cm-trust-line" style={{ marginTop: 0 }}>
+                    {icon('lock', { width: 14, height: 14 })}
+                    Secured by Vouchercloud · No purchase necessary
+                  </div>
+                </div>
+
+                {submitted && !valid && !loading && (
+                  <div style={{ marginTop: 14, color: 'var(--vc-red)', font: '700 13px var(--font-display)' }}>
+                    Please complete the required fields above to enter.
+                  </div>
+                )}
+                {serverError && (
+                  <div style={{ marginTop: 14, color: 'var(--vc-red)', font: '700 13px var(--font-display)' }}>
+                    {serverError}
+                  </div>
+                )}
+              </div>
+            </div>
+            <p className="cm-fineprint">
+              No purchase necessary. Open to UK residents aged 18 and over. One entry per person.
+              Promoter: Vouchercloud Ltd, Bristol. Closing date: {comp.endDateFormatted} at 23:59 BST.
+              Winner drawn at random and notified by email within 48 hours.{' '}
+              <a href={comp.termsUrl} target="_blank" rel="noopener">Read the full T&amp;Cs</a>.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    function ScreenConfirm({ mobile, firstname, email }) {
+      const [copied, setCopied] = useState(false);
+      const shareUrl = window.location.origin + `/c/${comp.slug}`;
+      const copy = () => {
+        navigator.clipboard.writeText(shareUrl).catch(() => {});
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1800);
+      };
+
+      return (
+        <div className="cm-root cm-conf-shell" style={{ flex: 1 }}>
+          <div className={mobile ? 'cm-conf-m' : 'cm-conf-d'}>
+            <div className="cm-conf-hero">
+              <div className="cm-tick">
+                {icon('check', { width: mobile ? 34 : 44, height: mobile ? 34 : 44, filter: 'invert(1)' })}
+              </div>
+              <h1>You're in{firstname ? `, ${firstname}` : ''}.</h1>
+              <p className="lede">
+                Entry confirmed{email ? <span> for <strong style={{ color: 'var(--vc-ink)' }}>{email}</strong></span> : ''}.
+                {' '}We'll be in touch if you win — good luck!
+              </p>
+            </div>
+
+            <div className="cm-conf-grid">
+              <div className="cm-share">
+                <span className="icon">{icon('share', { width: 22, height: 22, filter: 'invert(1)' })}</span>
+                <h3>Tell a mate</h3>
+                <p>The more the merrier — share the competition with friends.</p>
+                <div className="cm-share-row">
+                  <a className="cm-share-btn" href={`https://wa.me/?text=${encodeURIComponent('Enter the Vouchercloud competition: ' + shareUrl)}`} target="_blank" rel="noopener">WhatsApp</a>
+                  <a className="cm-share-btn" href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener">Facebook</a>
+                  <button className={`cm-share-btn${copied ? ' copied' : ''}`} onClick={copy}>
+                    {copied ? '✓ Copied' : 'Copy link'}
+                  </button>
+                </div>
+              </div>
+              <div className="cm-next">
+                <span className="icon">{icon('gift', { width: 22, height: 22, filter: 'invert(1)' })}</span>
+                <h3>While you wait</h3>
+                <p>4,000+ live voucher codes from UK retailers, picked by our editors every day.</p>
+                <a className="cm-btn outline sm" href="https://www.vouchercloud.com" style={{ alignSelf: 'flex-start', marginTop: 4 }}>
+                  Browse today's deals
+                  {icon('chevron-right', { width: 14, height: 14 })}
+                </a>
+              </div>
+            </div>
+
+            <p className="cm-fineprint">
+              No purchase necessary. Open to UK residents aged 18 and over. One entry per person.
+              Closing date: {comp.endDateFormatted}.{' '}
+              <a href={comp.termsUrl} target="_blank" rel="noopener">Full T&amp;Cs</a>.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    function App() {
+      const mobile = useMobile();
+      const [page, setPage]       = useState('landing');
+      const [entryData, setEntryData] = useState({});
+
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+          {page === 'landing' && <ScreenLanding mobile={mobile} onEnter={() => setPage('entry')} />}
+          {page === 'entry'   && <ScreenEntry   mobile={mobile} onSuccess={data => { setEntryData(data); setPage('confirm'); }} />}
+          {page === 'confirm' && <ScreenConfirm mobile={mobile} firstname={entryData.firstname} email={entryData.email} />}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
   </script>
 </body>
 </html>
